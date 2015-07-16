@@ -1,5 +1,7 @@
 package com.dqq.elasticschedule;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
 import android.app.Activity;
 import android.support.v7.app.ActionBar;
@@ -23,6 +25,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 import com.dqq.elasticschedule.ScheduleManager;
+import android.widget.EditText;
+
 
 import java.util.Date;
 
@@ -88,19 +92,7 @@ public class NavigationDrawerFragment extends Fragment {
             super.onActivityCreated(savedInstanceState);
             // Indicate that this fragment would like to influence the set of actions in the action bar.
             setHasOptionsMenu(true);
-            //item_list[item_list.length] = "新建";
-            java.util.ArrayList item_list = ScheduleManager.GetInstance().GetScheduleList();
-            item_list.add("新建");
-            mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                    getActionBar().getThemedContext(),
-                    android.R.layout.simple_list_item_activated_1,
-                    android.R.id.text1,
-//                new String[]{
-//                        getString(R.string.title_section1),
-//                        getString(R.string.title_section2),
-//                        getString(R.string.title_section3),}
-                    item_list
-            ));
+            RefreshList();
         }
 
         @Override
@@ -161,6 +153,7 @@ public class NavigationDrawerFragment extends Fragment {
 
             @Override
             public void onDrawerOpened(View drawerView) {
+                RefreshList();
                 super.onDrawerOpened(drawerView);
                 if (!isAdded()) {
                     return;
@@ -201,14 +194,28 @@ public class NavigationDrawerFragment extends Fragment {
         if (mDrawerListView != null) {
             mDrawerListView.setItemChecked(position, true);
             if (position + 1 == mDrawerListView.getCount()) {
-                // 新建
-                ScheduleManager.Schedule s = ScheduleManager.GetInstance().new Schedule();
-                s.name = "hehe_" + ScheduleManager.GetInstance().GetScheduleCount();
-                s.dead_line = new Date(2015 - 1900, 1, 2);
-                ScheduleManager.GetInstance().AddSchedule(s);
-                Log.e("1111111", "selectItem AddSchedule");
+                final EditText inputServer = new EditText(this.getActivity());
+                AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+                builder.setTitle("输入终极目标")./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
+                        .setNegativeButton("放弃", null);
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        String target = inputServer.getText().toString();
+                        if (!target.isEmpty()) {
+                            // 新建
+                            ScheduleManager.Schedule s = ScheduleManager.GetInstance().new Schedule();
+                            s.name = target;
+                            s.dead_line = new Date(2015 - 1900, 1, 2);
+                            ScheduleManager.GetInstance().AddSchedule(s);
+                            Log.e("1111111", "selectItem AddSchedule");
+                        }
+                    }
+                });
+                builder.show();
+            } else {
+                java.util.ArrayList target_list = ScheduleManager.GetInstance().OpenSchedule(position);
             }
-            java.util.ArrayList target_list = ScheduleManager.GetInstance().OpenSchedule(position);
         }
         if (mDrawerLayout != null) {
             mDrawerLayout.closeDrawer(mFragmentContainerView);
@@ -285,6 +292,16 @@ public class NavigationDrawerFragment extends Fragment {
 
     private ActionBar getActionBar() {
         return ((ActionBarActivity) getActivity()).getSupportActionBar();
+    }
+    private void RefreshList() {
+        java.util.ArrayList item_list = ScheduleManager.GetInstance().GetScheduleList();
+        item_list.add("新建");
+        mDrawerListView.setAdapter(new ArrayAdapter<String>(
+                getActionBar().getThemedContext(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                item_list
+        ));
     }
 
     /**

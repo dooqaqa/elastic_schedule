@@ -28,12 +28,6 @@ public class MainActivity extends ActionBarActivity
     private NavigationDrawerFragment mNavigationDrawerFragment;
     private ContentFragment mContentFragment;
     private SQLiteDatabase db = null;
-//    private SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("test.db", new SQLiteDatabase.CursorFactory() {
-//        @Override
-//        public Cursor newCursor(SQLiteDatabase db, SQLiteCursorDriver masterQuery, String editTable, SQLiteQuery query) {
-//            return null;
-//        }
-//    });
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.

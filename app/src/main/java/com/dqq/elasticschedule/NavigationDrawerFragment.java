@@ -28,6 +28,7 @@ import com.dqq.elasticschedule.ScheduleManager;
 import android.widget.EditText;
 
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -196,7 +197,7 @@ public class NavigationDrawerFragment extends Fragment {
             if (position + 1 == mDrawerListView.getCount()) {
                 final EditText inputServer = new EditText(this.getActivity());
                 AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-                builder.setTitle("输入终极目标")./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
+                builder.setTitle("设定目标")./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
                         .setNegativeButton("放弃", null);
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 
@@ -206,9 +207,14 @@ public class NavigationDrawerFragment extends Fragment {
                             // 新建
                             ScheduleManager.Schedule s = ScheduleManager.GetInstance().new Schedule();
                             s.name = target;
-                            s.dead_line = new Date(2015 - 1900, 1, 2);
+                            s.established_time = Calendar.getInstance();
+                            s.established_time.setTime(new Date(System.currentTimeMillis()));
+                            Log.e("1111111onClick", "sys:" + System.currentTimeMillis() + "\ncal:" + s.established_time.toString());
                             ScheduleManager.GetInstance().AddSchedule(s);
-                            Log.e("1111111", "selectItem AddSchedule");
+                            int count = ScheduleManager.GetInstance().GetScheduleCount();
+                            if (count > 0) {
+                                ScheduleManager.GetInstance().OpenSchedule(count - 1);
+                            }
                         }
                     }
                 });
@@ -272,7 +278,7 @@ public class NavigationDrawerFragment extends Fragment {
         }
 
         if (item.getItemId() == R.id.action_example) {
-            Toast.makeText(getActivity(), "Example action.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), ScheduleManager.GetInstance().GetScheduleName(ScheduleManager.GetInstance().GetCurrentScheduleIndex()), Toast.LENGTH_SHORT).show();
             return true;
         }
 

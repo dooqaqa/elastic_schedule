@@ -1,13 +1,11 @@
 package com.dqq.elasticschedule;
-import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQuery;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Calendar;
 
 /**
  * Created by Dooqaqa on 2015/7/5.
@@ -18,10 +16,53 @@ public class ScheduleManager {
     private ScheduleManager() {
     }
     public class Schedule {
-        int id;
+        long id;
         String name;
-        Date dead_line;
+        Calendar dead_line_cur;
+        Calendar  dead_line_ori;
+        Calendar  established_time;
         ArrayList<Schedule> milestones;
+    }
+    public class SpecificCalendar extends java.util.Calendar {
+        @Override
+        public void add(int field, int value) {
+
+        }
+
+        @Override
+        protected void computeFields() {
+
+        }
+
+        @Override
+        protected void computeTime() {
+
+        }
+
+        @Override
+        public int getGreatestMinimum(int field) {
+            return 0;
+        }
+
+        @Override
+        public int getLeastMaximum(int field) {
+            return 0;
+        }
+
+        @Override
+        public int getMaximum(int field) {
+            return 0;
+        }
+
+        @Override
+        public int getMinimum(int field) {
+            return 0;
+        }
+
+        @Override
+        public void roll(int field, boolean increment) {
+
+        }
     }
     private ArrayList<Schedule> data_ = new ArrayList<Schedule>();
     private SQLiteDatabase db_ = null;
@@ -48,7 +89,8 @@ public class ScheduleManager {
             Cursor c = db_.rawQuery("select name from sqlite_master where type='table' and name like 'schlist';", null);
             if (0 == c.getCount()) {
                 String sql = new String();
-                sql = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, name text not null, deadline_ori date, deadline_cur date);";
+                sql = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, name text not null," +
+                        "deadline_ori bigint, deadline_cur bigint, estab_time bigint);";
                 Log.e("1111111", "sql: " + sql);
                 db_.execSQL(sql);
             }
@@ -78,7 +120,7 @@ public class ScheduleManager {
     }
 
     public String GetScheduleName(int index) {
-        return "目标" + index;
+        return data_.get(index).name;
     }
 
     private void loadScheduleList() {
@@ -86,7 +128,11 @@ public class ScheduleManager {
     }
     public void AddSchedule(Schedule s) {
         try {
-            db_.execSQL("INSERT INTO " + DATABASE_TABLE + " VALUES (NULL, ?, ?, ?)", new Object[]{s.name, s.dead_line, s.dead_line});
+            db_.execSQL("INSERT INTO " + DATABASE_TABLE + " VALUES (NULL, ?, ?, ?, ?)",
+                    new Object[]{s.name,
+                            null != s.dead_line_ori ? s.dead_line_ori.getTime().getTime() : 0,
+                            null != s.dead_line_cur ? s.dead_line_cur.getTime().getTime() : 0,
+                            null != s.established_time ? s.established_time.getTime().getTime() : 0});
             clear();
             LoadData();
         } catch (Exception e) {
@@ -100,11 +146,17 @@ public class ScheduleManager {
             Log.e("11111111", "total:" + c.getCount());
             while (c.moveToNext()) {
                 Schedule ss = new Schedule();
-                ss.id = c.getInt(c.getColumnIndex("_id"));
+                ss.id = c.getLong(c.getColumnIndex("_id"));
                 ss.name = c.getString(c.getColumnIndex("name"));
-                ss.dead_line = new Date(c.getString(c.getColumnIndex("deadline_cur")));
+                ss.dead_line_ori = Calendar.getInstance();
+                ss.dead_line_ori.setTime(new Date(c.getLong(c.getColumnIndex("deadline_ori"))));
+                ss.dead_line_cur = Calendar.getInstance();
+                ss.dead_line_cur.setTime(new Date(c.getLong(c.getColumnIndex("deadline_cur"))));
+                ss.established_time = Calendar.getInstance();
+                ss.established_time.setTime(new Date(c.getLong(c.getColumnIndex("estab_time"))));
                 Log.e("11111111a", ss.name);
-                Log.e("11111111b", ss.dead_line.toString());
+                //Log.e("11111111b", DateFormat.getInstance().format(ss.dead_line.getTime()));
+                Log.e("11111111b", ss.established_time.toString());
                 data_.add(ss);
             }
         } catch (Exception e) {

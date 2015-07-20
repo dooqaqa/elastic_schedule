@@ -111,10 +111,13 @@ public class ScheduleManager {
     public java.util.ArrayList OpenSchedule(int index) {
         current_schedule_index = index;
         java.util.ArrayList rt = new java.util.ArrayList();
-        if (current_schedule_index < data_.size() && null != data_.get(current_schedule_index).milestones) {
-            for(Schedule s:data_.get(current_schedule_index).milestones) {
-                rt.add(s.name);
+        if (current_schedule_index < data_.size()) {
+            if (null != data_.get(current_schedule_index).milestones) {
+                for(Schedule s:data_.get(current_schedule_index).milestones) {
+                    rt.add(s.name);
+                }
             }
+            rt.add(data_.get(current_schedule_index).name);
         }
         return rt;
     }
@@ -140,6 +143,9 @@ public class ScheduleManager {
         }
     }
     private void LoadData() {
+        LoadScheduleList();
+    }
+    private void LoadScheduleList() {
         try {
             Cursor c;
             c = db_.rawQuery("SELECT * FROM " + DATABASE_TABLE, null);
@@ -157,10 +163,17 @@ public class ScheduleManager {
                 Log.e("11111111a", ss.name);
                 //Log.e("11111111b", DateFormat.getInstance().format(ss.dead_line.getTime()));
                 Log.e("11111111b", ss.established_time.toString());
+                LoadMilestones(ss.id, ss);
                 data_.add(ss);
             }
         } catch (Exception e) {
             Log.e("33333", e.getMessage());
         }
+    }
+    private void LoadMilestones(long index, Schedule s) {
+
+    }
+    private void DeleteSchedule(long index) {
+
     }
 }

@@ -54,8 +54,8 @@ public class ContentFragment extends Fragment {
                 selectItem(position);
             }
         });
-        //item_list[item_list.length] = "新建";
-        java.util.ArrayList item_list = ScheduleManager.GetInstance().OpenSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
+                //item_list[item_list.length] = "新建";
+                java.util.ArrayList item_list = ScheduleManager.GetInstance().OpenSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
         item_list.add("插入");
         mTargetsListView.setAdapter(new ArrayAdapter<String>(
                 getActionBar().getThemedContext(),

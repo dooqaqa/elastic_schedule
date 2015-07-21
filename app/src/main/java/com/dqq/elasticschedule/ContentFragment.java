@@ -24,16 +24,20 @@ import android.widget.Toast;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
+
+import java.util.ArrayList;
+
 /**
  * Created by ZhengJiefu on 2015/7/9.
  */
-public class ContentFragment extends Fragment {
+public class ContentFragment extends Fragment implements ScheduleObserver {
     private ListView mTargetsListView = null;
     public ContentFragment() {
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ScheduleManager.GetInstance().AddObserver(this);
     }
 
     @Override
@@ -54,16 +58,6 @@ public class ContentFragment extends Fragment {
                 selectItem(position);
             }
         });
-                //item_list[item_list.length] = "新建";
-                java.util.ArrayList item_list = ScheduleManager.GetInstance().OpenSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
-        item_list.add("插入");
-        mTargetsListView.setAdapter(new ArrayAdapter<String>(
-                getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                item_list
-        ));
-        //mTargetsListView.setItemChecked(0, true);
         return mTargetsListView;
     }
 
@@ -135,5 +129,29 @@ public class ContentFragment extends Fragment {
 
     private ActionBar getActionBar() {
         return ((ActionBarActivity) getActivity()).getSupportActionBar();
+    }
+    @Override
+    public void  NotifyScheduleOpened(long id) {
+        RefreshList();
+    }
+    private void RefreshList() {
+        //item_list[item_list.length] = "新建";
+        ScheduleManager.Schedule s = ScheduleManager.GetInstance().GetSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
+        ArrayList<String> item_list = new ArrayList<String>();
+        if (null != s.milestones) {
+            for (ScheduleManager.Schedule ss : s.milestones) {
+                item_list.add(ss.name);
+            }
+        }
+        item_list.add(s.name);
+        item_list.add("插入");
+        mTargetsListView.setAdapter(new ArrayAdapter<String>(
+                getActionBar().getThemedContext(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                item_list
+        ));
+        //mTargetsListView.setItemChecked(0, true);
+
     }
 }

@@ -13,6 +13,7 @@ import java.util.Calendar;
 public class ScheduleManager {
     private static ScheduleManager instance = null;
     private int current_schedule_index = 0;
+    private ArrayList<ScheduleObserver> observer_list = new ArrayList<ScheduleObserver>();
     private ScheduleManager() {
     }
     public class Schedule {
@@ -82,25 +83,12 @@ public class ScheduleManager {
     public int GetScheduleCount() {
         return data_.size();
     }
-    public void InitDb(SQLiteDatabase db) {
-        db_ = db;
-        try {
-            Log.e("1111111", "InitDb good");
-            Cursor c = db_.rawQuery("select name from sqlite_master where type='table' and name like 'schlist';", null);
-            if (0 == c.getCount()) {
-                String sql = new String();
-                sql = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, name text not null," +
-                        "deadline_ori bigint, deadline_cur bigint, estab_time bigint);";
-                Log.e("1111111", "sql: " + sql);
-                db_.execSQL(sql);
-            }
-            c.close();
-            LoadData();
-        } catch (Exception e) {
-            Log.e("1111111c", e.getMessage());
-        }
+    public String GetScheduleName(int index) {
+        return data_.get(index).name;
     }
-
+    public Schedule GetSchedule(int index) {
+        return data_.get(index);
+    }
     public java.util.ArrayList GetScheduleList() {
         java.util.ArrayList rt = new java.util.ArrayList();
         for(Schedule s:data_) {
@@ -119,11 +107,26 @@ public class ScheduleManager {
             }
             rt.add(data_.get(current_schedule_index).name);
         }
+        NotifyScheduleOpened();
         return rt;
     }
-
-    public String GetScheduleName(int index) {
-        return data_.get(index).name;
+    public void InitDb(SQLiteDatabase db) {
+        db_ = db;
+        try {
+            Log.e("1111111", "InitDb good");
+            Cursor c = db_.rawQuery("select name from sqlite_master where type='table' and name like 'schlist';", null);
+            if (0 == c.getCount()) {
+                String sql = new String();
+                sql = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, name text not null," +
+                        "deadline_ori bigint, deadline_cur bigint, estab_time bigint);";
+                Log.e("1111111", "sql: " + sql);
+                db_.execSQL(sql);
+            }
+            c.close();
+            LoadData();
+        } catch (Exception e) {
+            Log.e("1111111c", e.getMessage());
+        }
     }
 
     private void loadScheduleList() {
@@ -174,6 +177,13 @@ public class ScheduleManager {
 
     }
     private void DeleteSchedule(long index) {
-
+    }
+    public void AddObserver(ScheduleObserver ob) {
+        observer_list.add(ob);
+    }
+    private void NotifyScheduleOpened() {
+        for (ScheduleObserver ob : observer_list) {
+            ob.NotifyScheduleOpened(current_schedule_index);
+        }
     }
 }

@@ -26,12 +26,13 @@ import android.widget.EditText;
 import android.widget.TimePicker;
 
 import java.util.ArrayList;
+import com.dqq.elasticschedule.DragListView;
 
 /**
- * Created by ZhengJiefu on 2015/7/9.
+ * Created by dooqaqa on 2015/7/9.
  */
 public class ContentFragment extends Fragment implements ScheduleObserver {
-    private ListView mTargetsListView = null;
+    private DragListView mTargetsListView = null;
     public ContentFragment() {
     }
     @Override
@@ -50,7 +51,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mTargetsListView = (ListView) inflater.inflate(
+        mTargetsListView = (DragListView) inflater.inflate(
                 R.layout.fragment_content_main, container, false);
         mTargetsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -67,7 +68,6 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
             if (position + 1 == mTargetsListView.getCount()) {
                 // 新建
             }
-            java.util.ArrayList target_list = ScheduleManager.GetInstance().OpenSchedule(position);
         }
 //        if (mCallbacks != null) {
 //            mCallbacks.onNavigationDrawerItemSelected(position);

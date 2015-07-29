@@ -84,7 +84,7 @@ public class ScheduleManager {
         return data_.size();
     }
     public String GetScheduleName(int index) {
-        if (data_.isEmpty()) return "";
+        if (data_.size() <= index) return "";
         return data_.get(index).name;
     }
     public Schedule GetSchedule(int index) {
@@ -177,7 +177,13 @@ public class ScheduleManager {
     private void LoadMilestones(long index, Schedule s) {
 
     }
-    private void DeleteSchedule(long index) {
+    public void DeleteSchedule(long index) {
+        if (data_.size() <= index) return;
+        try {
+            db_.rawQuery("delete FROM " + DATABASE_TABLE + "where _id=" + data_.get((int)index).id, null);
+        } catch (Exception e) {
+            Log.e("DeleteSchedule", e.getMessage());
+        }
     }
     public void AddObserver(ScheduleObserver ob) {
         observer_list.add(ob);

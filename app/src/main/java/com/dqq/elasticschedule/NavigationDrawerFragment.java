@@ -280,6 +280,9 @@ public class NavigationDrawerFragment extends Fragment {
         if (item.getItemId() == R.id.action_example) {
             Toast.makeText(getActivity(), ScheduleManager.GetInstance().GetScheduleName(ScheduleManager.GetInstance().GetCurrentScheduleIndex()), Toast.LENGTH_SHORT).show();
             return true;
+        } else if (item.getItemId() == R.id.action_delete) {
+            ScheduleManager.GetInstance().DeleteSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

@@ -84,6 +84,7 @@ public class ScheduleManager {
         return data_.size();
     }
     public String GetScheduleName(int index) {
+        if (data_.isEmpty()) return "";
         return data_.get(index).name;
     }
     public Schedule GetSchedule(int index) {

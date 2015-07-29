@@ -105,6 +105,7 @@ public class MainActivity extends ActionBarActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_delete) {
+            ScheduleManager.GetInstance().DeleteSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
             Log.e("onOptionsItemSelected", "action_delete");
             return true;
         }

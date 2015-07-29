@@ -180,7 +180,9 @@ public class ScheduleManager {
     public void DeleteSchedule(long index) {
         if (data_.size() <= index) return;
         try {
-            db_.rawQuery("delete FROM " + DATABASE_TABLE + "where _id=" + data_.get((int)index).id, null);
+            db_.rawQuery("delete FROM " + DATABASE_TABLE + " where _id=" + data_.get((int)index).id, null);
+            clear();
+            LoadData();
         } catch (Exception e) {
             Log.e("DeleteSchedule", e.getMessage());
         }

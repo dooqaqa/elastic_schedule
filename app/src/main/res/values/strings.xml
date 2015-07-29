@@ -5,5 +5,5 @@
 
     <string name="action_example">查看全名</string>
 
-    <string name="action_settings">设置</string>
+    <string name="action_delete">删除</string>
 </resources>

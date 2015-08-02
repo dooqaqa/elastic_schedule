@@ -6,4 +6,7 @@
     <string name="action_example">查看全名</string>
 
     <string name="action_delete">删除</string>
+    <string name="delete_schedule_prompt">要确认删除,请输入yes</string>
+    <string name="delete_schedule_answer">yes</string>
+    <string name="delete_schedule_badinput">输入错误</string>
 </resources>

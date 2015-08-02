@@ -70,6 +70,7 @@ public class ScheduleManager {
     private static final String DATABASE_TABLE = "schlist";
     private void clear(){
         data_.clear();
+        current_schedule_index = 0;
     }
     public static ScheduleManager GetInstance() {
         if (instance == null) {
@@ -88,7 +89,9 @@ public class ScheduleManager {
         return data_.get(index).name;
     }
     public Schedule GetSchedule(int index) {
-        return data_.get(index);
+        Schedule rt = new Schedule();
+        if (index < data_.size()) rt = data_.get(index);
+        return rt;
     }
     public java.util.ArrayList GetScheduleList() {
         java.util.ArrayList rt = new java.util.ArrayList();
@@ -113,8 +116,8 @@ public class ScheduleManager {
     }
     public void InitDb(SQLiteDatabase db) {
         db_ = db;
+        clear();
         try {
-            Log.e("1111111", "InitDb good");
             Cursor c = db_.rawQuery("select name from sqlite_master where type='table' and name like 'schlist';", null);
             if (0 == c.getCount()) {
                 String sql = new String();
@@ -126,7 +129,7 @@ public class ScheduleManager {
             c.close();
             LoadData();
         } catch (Exception e) {
-            Log.e("1111111c", e.getMessage());
+            Log.e("InitDb", e.getMessage());
         }
     }
 
@@ -153,7 +156,7 @@ public class ScheduleManager {
         try {
             Cursor c;
             c = db_.rawQuery("SELECT * FROM " + DATABASE_TABLE, null);
-            Log.e("11111111", "total:" + c.getCount());
+            Log.e("LoadScheduleList", "total:" + c.getCount());
             while (c.moveToNext()) {
                 Schedule ss = new Schedule();
                 ss.id = c.getLong(c.getColumnIndex("_id"));
@@ -164,14 +167,11 @@ public class ScheduleManager {
                 ss.dead_line_cur.setTime(new Date(c.getLong(c.getColumnIndex("deadline_cur"))));
                 ss.established_time = Calendar.getInstance();
                 ss.established_time.setTime(new Date(c.getLong(c.getColumnIndex("estab_time"))));
-                Log.e("11111111a", ss.name);
-                //Log.e("11111111b", DateFormat.getInstance().format(ss.dead_line.getTime()));
-                Log.e("11111111b", ss.established_time.toString());
                 LoadMilestones(ss.id, ss);
                 data_.add(ss);
             }
         } catch (Exception e) {
-            Log.e("33333", e.getMessage());
+            Log.e("LoadScheduleList", e.getMessage());
         }
     }
     private void LoadMilestones(long index, Schedule s) {
@@ -180,19 +180,29 @@ public class ScheduleManager {
     public void DeleteSchedule(long index) {
         if (data_.size() <= index) return;
         try {
-            db_.rawQuery("delete FROM " + DATABASE_TABLE + " where _id=" + data_.get((int)index).id, null);
+            db_.execSQL("delete FROM " + DATABASE_TABLE + " where _id=" + data_.get((int) index).id, new Object[]{});
             clear();
             LoadData();
+            NotifyScheduleDeleted(index);
         } catch (Exception e) {
             Log.e("DeleteSchedule", e.getMessage());
         }
     }
-    public void AddObserver(ScheduleObserver ob) {
-        observer_list.add(ob);
+    public void RegObserver(ScheduleObserver ob,boolean isreg) {
+        if (isreg) {
+            observer_list.add(ob);
+        } else {
+            observer_list.remove(ob);
+        }
     }
     private void NotifyScheduleOpened() {
         for (ScheduleObserver ob : observer_list) {
             ob.NotifyScheduleOpened(current_schedule_index);
+        }
+    }
+    private void NotifyScheduleDeleted(long index) {
+        for (ScheduleObserver ob : observer_list) {
+            ob.NotifyScheduleDeleted(index);
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.dqq.elasticschedule;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -10,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +29,9 @@ import android.widget.EditText;
 import android.widget.TimePicker;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+
 import com.dqq.elasticschedule.DragListView;
 
 /**
@@ -38,13 +44,14 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ScheduleManager.GetInstance().AddObserver(this);
+        ScheduleManager.GetInstance().RegObserver(this, true);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
+        RefreshList();
         setHasOptionsMenu(true);
     }
 
@@ -59,6 +66,12 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
                 selectItem(position);
             }
         });
+        mTargetsListView.setAdapter(new ArrayAdapter<String>(
+                getActionBar().getThemedContext(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                new String[] {}
+        ));
         return mTargetsListView;
     }
 
@@ -66,12 +79,8 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
         if (mTargetsListView != null) {
             mTargetsListView.setItemChecked(position, true);
             if (position + 1 == mTargetsListView.getCount()) {
-                // 新建
             }
         }
-//        if (mCallbacks != null) {
-//            mCallbacks.onNavigationDrawerItemSelected(position);
-//        }
     }
 
     @Override
@@ -87,13 +96,13 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
     @Override
     public void onDetach() {
         super.onDetach();
+        ScheduleManager.GetInstance().RegObserver(this, false);
        // mCallbacks = null;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedPosition);
     }
 
     @Override
@@ -108,11 +117,29 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_example) {
+        int id = item.getItemId();
+        if (id == R.id.action_delete) {
+            final EditText inputServer = new EditText(this.getActivity());
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+            builder.setTitle(getActivity().getString(R.string.delete_schedule_prompt))./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
+                    .setNegativeButton("放弃", null);
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    String target = inputServer.getText().toString();
+                    if (0 == target.compareTo(getActivity().getString(R.string.delete_schedule_answer))) {
+                        ScheduleManager.GetInstance().DeleteSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
+                    } else {
+                        Toast.makeText(getActivity(), getActivity().getString(R.string.delete_schedule_badinput), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+            builder.show();
+            Log.e("onOptionsItemSelected", "action_delete");
+            return true;
+        } else if (id == R.id.action_example) {
             Toast.makeText(getActivity(), ScheduleManager.GetInstance().GetScheduleName(ScheduleManager.GetInstance().GetCurrentScheduleIndex()), Toast.LENGTH_SHORT).show();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -131,11 +158,19 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
         return ((ActionBarActivity) getActivity()).getSupportActionBar();
     }
     @Override
-    public void  NotifyScheduleOpened(long id) {
-        RefreshList();
+    public void  NotifyScheduleOpened(long id){RefreshList();}
+    @Override
+    public void  NotifyScheduleListChanged(){}
+    @Override
+    public void NotifyScheduleDeleted(long index){
+        mTargetsListView.setAdapter(new ArrayAdapter<String>(
+                getActionBar().getThemedContext(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                new String[] {}
+        ));
     }
-    private void RefreshList() {
-        //item_list[item_list.length] = "新建";
+    private void RefreshList(){
         ScheduleManager.Schedule s = ScheduleManager.GetInstance().GetSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
         ArrayList<String> item_list = new ArrayList<String>();
         if (null != s.milestones) {
@@ -143,7 +178,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
                 item_list.add(ss.name);
             }
         }
-        item_list.add(s.name);
+        if (null != s.name) item_list.add(s.name);
         item_list.add("插入");
         mTargetsListView.setAdapter(new ArrayAdapter<String>(
                 getActionBar().getThemedContext(),
@@ -151,7 +186,5 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
                 android.R.id.text1,
                 item_list
         ));
-        //mTargetsListView.setItemChecked(0, true);
-
     }
 }

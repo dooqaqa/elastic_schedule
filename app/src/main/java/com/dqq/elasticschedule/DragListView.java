@@ -58,6 +58,7 @@ public class DragListView extends ListView {
                 
                 itemView.setDrawingCacheEnabled(true);
                 Bitmap bm = Bitmap.createBitmap(itemView.getDrawingCache());
+                itemView.setDrawingCacheEnabled(false);
                 startDrag(bm, y);
             }
             return false;

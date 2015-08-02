@@ -28,6 +28,8 @@ import com.dqq.elasticschedule.ScheduleManager;
 import android.widget.EditText;
 
 
+import java.sql.Ref;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -36,7 +38,7 @@ import java.util.Date;
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
-public class NavigationDrawerFragment extends Fragment {
+public class NavigationDrawerFragment extends Fragment implements ScheduleObserver {
 
     /**
      * Remember the position of the selected item.
@@ -73,6 +75,7 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ScheduleManager.GetInstance().RegObserver(this, true);
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.
@@ -200,16 +203,13 @@ public class NavigationDrawerFragment extends Fragment {
                 builder.setTitle("设定目标")./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
                         .setNegativeButton("放弃", null);
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-
                     public void onClick(DialogInterface dialog, int which) {
                         String target = inputServer.getText().toString();
                         if (!target.isEmpty()) {
-                            // 新建
                             ScheduleManager.Schedule s = ScheduleManager.GetInstance().new Schedule();
                             s.name = target;
                             s.established_time = Calendar.getInstance();
                             s.established_time.setTime(new Date(System.currentTimeMillis()));
-                            Log.e("1111111onClick", "sys:" + System.currentTimeMillis() + "\ncal:" + s.established_time.toString());
                             ScheduleManager.GetInstance().AddSchedule(s);
                             int count = ScheduleManager.GetInstance().GetScheduleCount();
                             if (count > 0) {
@@ -244,6 +244,7 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        ScheduleManager.GetInstance().RegObserver(this, false);
         mCallbacks = null;
     }
 
@@ -274,14 +275,6 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-        if (item.getItemId() == R.id.action_example) {
-            Toast.makeText(getActivity(), ScheduleManager.GetInstance().GetScheduleName(ScheduleManager.GetInstance().GetCurrentScheduleIndex()), Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (item.getItemId() == R.id.action_delete) {
-            ScheduleManager.GetInstance().DeleteSchedule(ScheduleManager.GetInstance().GetCurrentScheduleIndex());
             return true;
         }
 
@@ -321,5 +314,14 @@ public class NavigationDrawerFragment extends Fragment {
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position);
+    }
+    @Override
+    public void  NotifyScheduleOpened(long id){}
+    @Override
+    public void  NotifyScheduleListChanged(){RefreshList();}
+    @Override
+    public void NotifyScheduleDeleted(long index) {
+        RefreshList();
+        mDrawerLayout.openDrawer(GravityCompat.START);
     }
 }

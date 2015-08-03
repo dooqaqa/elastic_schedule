@@ -24,47 +24,6 @@ public class ScheduleManager {
         Calendar  established_time;
         ArrayList<Schedule> milestones;
     }
-    public class SpecificCalendar extends java.util.Calendar {
-        @Override
-        public void add(int field, int value) {
-
-        }
-
-        @Override
-        protected void computeFields() {
-
-        }
-
-        @Override
-        protected void computeTime() {
-
-        }
-
-        @Override
-        public int getGreatestMinimum(int field) {
-            return 0;
-        }
-
-        @Override
-        public int getLeastMaximum(int field) {
-            return 0;
-        }
-
-        @Override
-        public int getMaximum(int field) {
-            return 0;
-        }
-
-        @Override
-        public int getMinimum(int field) {
-            return 0;
-        }
-
-        @Override
-        public void roll(int field, boolean increment) {
-
-        }
-    }
     private ArrayList<Schedule> data_ = new ArrayList<Schedule>();
     private SQLiteDatabase db_ = null;
     private static final String DATABASE_TABLE = "schlist";
@@ -123,19 +82,16 @@ public class ScheduleManager {
                 String sql = new String();
                 sql = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, name text not null," +
                         "deadline_ori bigint, deadline_cur bigint, estab_time bigint);";
-                Log.e("1111111", "sql: " + sql);
+                Log.e("InitDb", "sql: " + sql);
                 db_.execSQL(sql);
             }
             c.close();
             LoadData();
         } catch (Exception e) {
-            Log.e("InitDb", e.getMessage());
+            Log.e("InitDb_e", e.getMessage());
         }
     }
 
-    private void loadScheduleList() {
-
-    }
     public void AddSchedule(Schedule s) {
         try {
             db_.execSQL("INSERT INTO " + DATABASE_TABLE + " VALUES (NULL, ?, ?, ?, ?)",
@@ -146,9 +102,28 @@ public class ScheduleManager {
             clear();
             LoadData();
         } catch (Exception e) {
-            Log.e("222222", e.getMessage());
+            Log.e("AddSchedule_e", e.getMessage());
         }
     }
+    public void AddMileStone(Schedule m) {
+        if (current_schedule_index >= data_.size()) return;
+        Schedule s = data_.get(current_schedule_index);
+        if (null == s.milestones) {
+            s.milestones = new ArrayList<Schedule>();
+            String sql = new String();
+            sql = "CREATE TABLE m_" + s.id + " (_id integer primary key autoincrement, name text not null," +
+                    "deadline_ori bigint, deadline_cur bigint, estab_time bigint);";
+            Log.e("AddMileStone", "sql: " + sql);
+            db_.execSQL(sql);
+        }
+        db_.execSQL("INSERT INTO m_" + s.id + " VALUES (NULL, ?, ?, ?, ?)",
+                new Object[]{m.name,
+                        null != m.dead_line_ori ? m.dead_line_ori.getTime().getTime() : 0,
+                        null != m.dead_line_cur ? m.dead_line_cur.getTime().getTime() : 0,
+                        null != m.established_time ? m.established_time.getTime().getTime() : 0});
+        data_.get(current_schedule_index).milestones.add(m);
+    }
+
     private void LoadData() {
         LoadScheduleList();
     }
@@ -158,34 +133,55 @@ public class ScheduleManager {
             c = db_.rawQuery("SELECT * FROM " + DATABASE_TABLE, null);
             Log.e("LoadScheduleList", "total:" + c.getCount());
             while (c.moveToNext()) {
-                Schedule ss = new Schedule();
-                ss.id = c.getLong(c.getColumnIndex("_id"));
-                ss.name = c.getString(c.getColumnIndex("name"));
-                ss.dead_line_ori = Calendar.getInstance();
-                ss.dead_line_ori.setTime(new Date(c.getLong(c.getColumnIndex("deadline_ori"))));
-                ss.dead_line_cur = Calendar.getInstance();
-                ss.dead_line_cur.setTime(new Date(c.getLong(c.getColumnIndex("deadline_cur"))));
-                ss.established_time = Calendar.getInstance();
-                ss.established_time.setTime(new Date(c.getLong(c.getColumnIndex("estab_time"))));
-                LoadMilestones(ss.id, ss);
-                data_.add(ss);
+                Schedule s = new Schedule();
+                s.id = c.getLong(c.getColumnIndex("_id"));
+                s.name = c.getString(c.getColumnIndex("name"));
+                s.dead_line_ori = Calendar.getInstance();
+                s.dead_line_ori.setTime(new Date(c.getLong(c.getColumnIndex("deadline_ori"))));
+                s.dead_line_cur = Calendar.getInstance();
+                s.dead_line_cur.setTime(new Date(c.getLong(c.getColumnIndex("deadline_cur"))));
+                s.established_time = Calendar.getInstance();
+                s.established_time.setTime(new Date(c.getLong(c.getColumnIndex("estab_time"))));
+                LoadMilestones(s);
+                data_.add(s);
             }
         } catch (Exception e) {
-            Log.e("LoadScheduleList", e.getMessage());
+            Log.e("LoadScheduleList_e", e.getMessage());
         }
     }
-    private void LoadMilestones(long index, Schedule s) {
-
+    private void LoadMilestones( Schedule s) {
+        try {
+            Cursor c;
+            c = db_.rawQuery("SELECT * FROM m_" + s.id, null);
+            Log.e("LoadMilestones", "total:" + c.getCount());
+            while (c.moveToNext()) {
+                Schedule m = new Schedule();
+                m.id = c.getLong(c.getColumnIndex("_id"));
+                m.name = c.getString(c.getColumnIndex("name"));
+                m.dead_line_ori = Calendar.getInstance();
+                m.dead_line_ori.setTime(new Date(c.getLong(c.getColumnIndex("deadline_ori"))));
+                m.dead_line_cur = Calendar.getInstance();
+                m.dead_line_cur.setTime(new Date(c.getLong(c.getColumnIndex("deadline_cur"))));
+                m.established_time = Calendar.getInstance();
+                m.established_time.setTime(new Date(c.getLong(c.getColumnIndex("estab_time"))));
+                s.milestones.add(m);
+            }
+        } catch (Exception e) {
+            Log.e("LoadMilestones_e", e.getMessage());
+        }
     }
     public void DeleteSchedule(long index) {
         if (data_.size() <= index) return;
         try {
-            db_.execSQL("delete FROM " + DATABASE_TABLE + " where _id=" + data_.get((int) index).id, new Object[]{});
+            db_.execSQL("DELETE FROM " + DATABASE_TABLE + " where _id=" + data_.get((int) index).id, new Object[]{});
+            if (null != data_.get((int)index).milestones) {
+                db_.execSQL("DROP TABLE m_" + data_.get((int)index).id, new Object[]{});
+            }
             clear();
             LoadData();
             NotifyScheduleDeleted(index);
         } catch (Exception e) {
-            Log.e("DeleteSchedule", e.getMessage());
+            Log.e("DeleteSchedule_e", e.getMessage());
         }
     }
     public void RegObserver(ScheduleObserver ob,boolean isreg) {

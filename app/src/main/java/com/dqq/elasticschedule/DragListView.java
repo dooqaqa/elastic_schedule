@@ -15,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class DragListView extends ListView {
     
     private ImageView dragImageView;
@@ -30,6 +32,19 @@ public class DragListView extends ListView {
     private int scaledTouchSlop;
     private int upScrollBounce;
     private int downScrollBounce;
+    private ArrayList<DragListViewListener> listeners = new ArrayList<DragListViewListener>();
+
+    public interface DragListViewListener {
+        void OnDragFinish();
+    }
+    public void AddListener(DragListViewListener listener) {
+        listeners.add(listener);
+    }
+    private void NotifyDragFinish() {
+        for (DragListViewListener ls : listeners) {
+            ls.OnDragFinish();
+        }
+    }
     
     public DragListView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -50,8 +65,7 @@ public class DragListView extends ListView {
             View itemView = (View) getChildAt(dragPosition-getFirstVisiblePosition());
             dragPoint = y - itemView.getTop();
             dragOffset = (int) (ev.getRawY() - y);
-            
-            View dragger = itemView.findViewById(R.id.drag_list_item_text);
+
             if(itemView != null && x > itemView.getLeft() - 20){
                 upScrollBounce = Math.min(y-scaledTouchSlop, getHeight()/3);
                 downScrollBounce = Math.max(y+scaledTouchSlop, getHeight()*2/3);
@@ -159,6 +173,6 @@ public class DragListView extends ListView {
             adapter.insert(dragItem, dragPosition);
             Toast.makeText(getContext(), dragItem, Toast.LENGTH_SHORT).show();
         }
-        
+        NotifyDragFinish();
     }
 }

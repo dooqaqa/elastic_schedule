@@ -79,6 +79,24 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
         if (mTargetsListView != null) {
             mTargetsListView.setItemChecked(position, true);
             if (position + 1 == mTargetsListView.getCount()) {
+                final EditText inputServer = new EditText(this.getActivity());
+                AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+                builder.setTitle("添加里程碑")./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
+                        .setNegativeButton("放弃", null);
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String target = inputServer.getText().toString();
+                        if (!target.isEmpty()) {
+                            ScheduleManager.Schedule m = ScheduleManager.GetInstance().new Schedule();
+                            m.name = target;
+                            m.established_time = Calendar.getInstance();
+                            m.established_time.setTime(new Date(System.currentTimeMillis()));
+                            ScheduleManager.GetInstance().AddMileStone(m);
+                            RefreshList();
+                        }
+                    }
+                });
+                builder.show();
             }
         }
     }

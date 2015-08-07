@@ -36,6 +36,7 @@ public class DragListView extends ListView {
 
     public interface DragListViewListener {
         void OnDragFinish();
+        boolean IsPositionDragable(int position);
     }
     public void AddListener(DragListViewListener listener) {
         listeners.add(listener);
@@ -44,6 +45,16 @@ public class DragListView extends ListView {
         for (DragListViewListener ls : listeners) {
             ls.OnDragFinish();
         }
+    }
+    private boolean IsPositionDragable(int position) {
+        boolean ret = false;
+        for (DragListViewListener ls : listeners) {
+            if (!ls.IsPositionDragable(position)) {
+                ret = false;
+                break;
+            }
+        }
+        return ret;
     }
     
     public DragListView(Context context, AttributeSet attrs) {
@@ -58,7 +69,7 @@ public class DragListView extends ListView {
             int y = (int)ev.getY();
             
             dragSrcPosition = dragPosition = pointToPosition(x, y);
-            if(dragPosition==AdapterView.INVALID_POSITION){
+            if(dragPosition==AdapterView.INVALID_POSITION || !IsPositionDragable(dragPosition)){
                 return super.onInterceptTouchEvent(ev);
             }
 

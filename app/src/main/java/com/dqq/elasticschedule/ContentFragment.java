@@ -37,7 +37,7 @@ import com.dqq.elasticschedule.DragListView;
 /**
  * Created by dooqaqa on 2015/7/9.
  */
-public class ContentFragment extends Fragment implements ScheduleObserver {
+public class ContentFragment extends Fragment implements ScheduleObserver, DragListView.DragListViewListener {
     private DragListView mTargetsListView = null;
     public ContentFragment() {
     }
@@ -72,12 +72,13 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
                 android.R.id.text1,
                 new String[] {}
         ));
+        mTargetsListView.AddListener(this);
         return mTargetsListView;
     }
 
     private void selectItem(int position) {
         if (mTargetsListView != null) {
-            mTargetsListView.setItemChecked(position, true);
+            //mTargetsListView.setItemChecked(position, true);
             if (position + 1 == mTargetsListView.getCount()) {
                 final EditText inputServer = new EditText(this.getActivity());
                 AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
@@ -204,5 +205,11 @@ public class ContentFragment extends Fragment implements ScheduleObserver {
                 android.R.id.text1,
                 item_list
         ));
+    }
+    public void OnDragFinish(int sourcepos, int targetpos) {
+
+    }
+    public boolean IsPositionDragable(int position) {
+        return position != mTargetsListView.getCount() - 1;
     }
 }

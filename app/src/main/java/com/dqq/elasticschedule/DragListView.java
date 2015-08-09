@@ -35,19 +35,19 @@ public class DragListView extends ListView {
     private ArrayList<DragListViewListener> listeners = new ArrayList<DragListViewListener>();
 
     public interface DragListViewListener {
-        void OnDragFinish();
+        void OnDragFinish(int sourcepos, int targetpos);
         boolean IsPositionDragable(int position);
     }
     public void AddListener(DragListViewListener listener) {
         listeners.add(listener);
     }
-    private void NotifyDragFinish() {
+    private void NotifyItemPositionChanged(int sourcepos, int targetpos) {
         for (DragListViewListener ls : listeners) {
-            ls.OnDragFinish();
+            ls.OnDragFinish(sourcepos, targetpos);
         }
     }
     private boolean IsPositionDragable(int position) {
-        boolean ret = false;
+        boolean ret = true;
         for (DragListViewListener ls : listeners) {
             if (!ls.IsPositionDragable(position)) {
                 ret = false;
@@ -177,13 +177,13 @@ public class DragListView extends ListView {
             dragPosition = getAdapter().getCount() - 1;
         }
 
-        if(dragPosition > 0 && dragPosition < getAdapter().getCount()) {
+        if(dragPosition > 0 && dragPosition < getAdapter().getCount() && IsPositionDragable(dragPosition)) {
             ArrayAdapter adapter = (ArrayAdapter)getAdapter();
             String dragItem = (String)adapter.getItem(dragSrcPosition);
             adapter.remove(dragItem);
             adapter.insert(dragItem, dragPosition);
             Toast.makeText(getContext(), dragItem, Toast.LENGTH_SHORT).show();
+            NotifyItemPositionChanged(dragSrcPosition, dragPosition);
         }
-        NotifyDragFinish();
     }
 }

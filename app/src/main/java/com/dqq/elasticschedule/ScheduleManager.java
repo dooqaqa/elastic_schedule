@@ -154,6 +154,7 @@ public class ScheduleManager {
             Cursor c;
             c = db_.rawQuery("SELECT * FROM m_" + s.id, null);
             Log.e("LoadMilestones", "total:" + c.getCount());
+            if (null == s.milestones) s.milestones = new ArrayList<Schedule>();
             while (c.moveToNext()) {
                 Schedule m = new Schedule();
                 m.id = c.getLong(c.getColumnIndex("_id"));

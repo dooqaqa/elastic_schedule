@@ -1,6 +1,7 @@
 package com.dqq.elasticschedule;
 
 import android.app.Activity;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -19,6 +20,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+
+import java.io.File;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -49,7 +52,7 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-        db = this.openOrCreateDatabase("schedule.db", Context.MODE_PRIVATE, null);
+        db = this.openOrCreateDatabase(GetDbPath(), Context.MODE_PRIVATE, null);
         ScheduleManager.GetInstance().InitDb(db);
     }
     @Override
@@ -61,6 +64,20 @@ public class MainActivity extends ActionBarActivity
         super.onDestroy();
     }
 
+    private String GetDbPath(){
+        File sdDir = null;
+        boolean sdCardExist = Environment.getExternalStorageState()
+                .equals(android.os.Environment.MEDIA_MOUNTED);   //判断sd卡是否存在
+        if (sdCardExist) {
+            sdDir = Environment.getExternalStorageDirectory();//获取跟目录
+        }
+        File file = new File(sdDir.getPath() + "/free_schedule");
+        if (!file.exists()) {
+            boolean rt = file.mkdir();
+            Log.d("111111", file.getPath() + rt);
+        }
+        return file.getPath() + "/schedule.db";
+    }
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments

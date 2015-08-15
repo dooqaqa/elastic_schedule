@@ -52,6 +52,9 @@ public class ScheduleManager {
         if (index < data_.size()) rt = data_.get(index);
         return rt;
     }
+    public Schedule GetCurrentSchedule() {
+        return GetSchedule(current_schedule_index);
+    }
     public java.util.ArrayList GetScheduleList() {
         java.util.ArrayList rt = new java.util.ArrayList();
         for(Schedule s:data_) {
@@ -184,6 +187,29 @@ public class ScheduleManager {
         } catch (Exception e) {
             Log.e("DeleteSchedule_e", e.getMessage());
         }
+    }
+    public void UpdateSchedule(Schedule s) {
+
+    }
+
+    public void MoveMilesone(int sourcepos, int targetpos) {
+        Schedule s = GetCurrentSchedule();
+        if (null != s.milestones && sourcepos <s.milestones.size() && targetpos < s.milestones.size()) {
+            Schedule m = s.milestones.get(sourcepos);
+            s.milestones.remove(sourcepos);
+            s.milestones.add(targetpos, m);
+        }
+//        try {
+//            db_.execSQL("DELETE FROM " + DATABASE_TABLE + " where _id=" + data_.get((int) index).id, new Object[]{});
+//            if (null != data_.get((int)index).milestones) {
+//                db_.execSQL("DROP TABLE m_" + data_.get((int)index).id, new Object[]{});
+//            }
+//            clear();
+//            LoadData();
+//            NotifyScheduleDeleted(index);
+//        } catch (Exception e) {
+//            Log.e("DeleteSchedule_e", e.getMessage());
+//        }
     }
     public void RegObserver(ScheduleObserver ob,boolean isreg) {
         if (isreg) {

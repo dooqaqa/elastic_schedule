@@ -207,7 +207,6 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         ));
     }
     public void OnDragFinish(int sourcepos, int targetpos) {
-
     }
     public boolean IsPositionDragable(int position) {
         return position != mTargetsListView.getCount() - 1;

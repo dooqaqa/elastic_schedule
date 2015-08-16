@@ -17,12 +17,19 @@ public class ScheduleManager {
     private ScheduleManager() {
     }
     public class Schedule {
-        long id;
-        String name;
-        Calendar dead_line_cur;
-        Calendar  dead_line_ori;
-        Calendar  established_time;
-        ArrayList<Schedule> milestones;
+        public int MilestoneCount() {
+            int rt = 0;
+            if (null != milestones) {
+                rt = milestones.size();
+            }
+            return rt;
+        }
+        protected long id;
+        protected String name;
+        protected Calendar dead_line_cur;
+        protected Calendar  dead_line_ori;
+        protected Calendar  established_time;
+        protected ArrayList<Schedule> milestones;
     }
     private ArrayList<Schedule> data_ = new ArrayList<Schedule>();
     private SQLiteDatabase db_ = null;
@@ -83,7 +90,7 @@ public class ScheduleManager {
             Cursor c = db_.rawQuery("select name from sqlite_master where type='table' and name like 'schlist';", null);
             if (0 == c.getCount()) {
                 String sql = new String();
-                sql = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, name text not null," +
+                sql = "create table " + DATABASE_TABLE + "(_id integer , name text not null," +
                         "deadline_ori bigint, deadline_cur bigint, estab_time bigint);";
                 Log.e("InitDb", "sql: " + sql);
                 db_.execSQL(sql);
@@ -95,10 +102,10 @@ public class ScheduleManager {
         }
     }
 
-    public void AddSchedule(Schedule s) {
+    public void AddSchedule(Schedule s, int index) {
         try {
-            db_.execSQL("INSERT INTO " + DATABASE_TABLE + " VALUES (NULL, ?, ?, ?, ?)",
-                    new Object[]{s.name,
+            db_.execSQL("INSERT INTO " + DATABASE_TABLE + " VALUES (?, ?, ?, ?, ?)",
+                    new Object[]{index, s.name,
                             null != s.dead_line_ori ? s.dead_line_ori.getTime().getTime() : 0,
                             null != s.dead_line_cur ? s.dead_line_cur.getTime().getTime() : 0,
                             null != s.established_time ? s.established_time.getTime().getTime() : 0});
@@ -108,19 +115,19 @@ public class ScheduleManager {
             Log.e("AddSchedule_e", e.getMessage());
         }
     }
-    public void AddMileStone(Schedule m) {
+    public void AddMileStone(Schedule m, int index) {
         if (current_schedule_index >= data_.size()) return;
         Schedule s = data_.get(current_schedule_index);
         if (null == s.milestones) {
             s.milestones = new ArrayList<Schedule>();
             String sql = new String();
-            sql = "CREATE TABLE m_" + s.id + " (_id integer primary key autoincrement, name text not null," +
+            sql = "CREATE TABLE m_" + s.id + " (_id integer , name text not null," +
                     "deadline_ori bigint, deadline_cur bigint, estab_time bigint);";
             Log.e("AddMileStone", "sql: " + sql);
             db_.execSQL(sql);
         }
-        db_.execSQL("INSERT INTO m_" + s.id + " VALUES (NULL, ?, ?, ?, ?)",
-                new Object[]{m.name,
+        db_.execSQL("INSERT INTO m_" + s.id + " VALUES (?, ?, ?, ?, ?)",
+                new Object[]{index, m.name,
                         null != m.dead_line_ori ? m.dead_line_ori.getTime().getTime() : 0,
                         null != m.dead_line_cur ? m.dead_line_cur.getTime().getTime() : 0,
                         null != m.established_time ? m.established_time.getTime().getTime() : 0});
@@ -199,17 +206,38 @@ public class ScheduleManager {
             s.milestones.remove(sourcepos);
             s.milestones.add(targetpos, m);
         }
-//        try {
-//            db_.execSQL("DELETE FROM " + DATABASE_TABLE + " where _id=" + data_.get((int) index).id, new Object[]{});
-//            if (null != data_.get((int)index).milestones) {
-//                db_.execSQL("DROP TABLE m_" + data_.get((int)index).id, new Object[]{});
-//            }
-//            clear();
-//            LoadData();
-//            NotifyScheduleDeleted(index);
-//        } catch (Exception e) {
-//            Log.e("DeleteSchedule_e", e.getMessage());
-//        }
+        try {
+            int tempid = s.milestones.size() + 1;
+            int dbsource = sourcepos + 1;
+            int dbtarget = targetpos + 1;
+            db_.beginTransaction();
+            if (sourcepos > targetpos) {
+                String sql = "update m_" + s.id + " set _id=" + tempid + " where _id=" + dbsource + ";";
+                Log.e("11111111MoveMilesone", sql);
+                db_.execSQL(sql, new Object[]{});
+                sql = "update m_" + s.id + " set _id=_id+1 where _id<" + dbsource + " and _id>=" + dbtarget + ";";
+                Log.e("11111111MoveMilesone", sql);
+                db_.execSQL(sql, new Object[]{});
+                sql = "update m_" + s.id + " set _id=" + dbtarget + " where _id=" + tempid + ";";
+                Log.e("11111111MoveMilesone", sql);
+                db_.execSQL(sql, new Object[]{});
+            } else {
+                String sql = "update m_" + s.id + " set _id=" + tempid + " where _id=" + dbsource + ";";
+                Log.e("11111111MoveMilesone", sql);
+                db_.execSQL(sql, new Object[]{});
+                sql = "update m_" + s.id + " set _id=_id-1 where _id>" + dbsource + " and _id<=" + dbtarget + ";";
+                Log.e("11111111MoveMilesone", sql);
+                db_.execSQL(sql, new Object[]{});
+                sql = "update m_" + s.id + " set _id=" + dbtarget + " where _id=" + tempid + ";";
+                Log.e("11111111MoveMilesone", sql);
+                db_.execSQL(sql, new Object[]{});
+            }
+            db_.setTransactionSuccessful();
+            db_.endTransaction();
+        } catch (Exception e) {
+            Log.e("MoveMilesone", e.getMessage());
+            db_.endTransaction();
+        }
     }
     public void RegObserver(ScheduleObserver ob,boolean isreg) {
         if (isreg) {

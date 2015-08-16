@@ -210,7 +210,7 @@ public class NavigationDrawerFragment extends Fragment implements ScheduleObserv
                             s.name = target;
                             s.established_time = Calendar.getInstance();
                             s.established_time.setTime(new Date(System.currentTimeMillis()));
-                            ScheduleManager.GetInstance().AddSchedule(s);
+                            ScheduleManager.GetInstance().AddSchedule(s, ScheduleManager.GetInstance().GetScheduleCount());
                             int count = ScheduleManager.GetInstance().GetScheduleCount();
                             if (count > 0) {
                                 ScheduleManager.GetInstance().OpenSchedule(count - 1);

@@ -92,7 +92,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
                             m.name = target;
                             m.established_time = Calendar.getInstance();
                             m.established_time.setTime(new Date(System.currentTimeMillis()));
-                            ScheduleManager.GetInstance().AddMileStone(m);
+                            ScheduleManager.GetInstance().AddMileStone(m, ScheduleManager.GetInstance().GetCurrentSchedule().MilestoneCount());
                             RefreshList();
                         }
                     }
@@ -207,6 +207,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         ));
     }
     public void OnDragFinish(int sourcepos, int targetpos) {
+        ScheduleManager.GetInstance().MoveMilesone(sourcepos, targetpos);
     }
     public boolean IsPositionDragable(int position) {
         return position != mTargetsListView.getCount() - 1;

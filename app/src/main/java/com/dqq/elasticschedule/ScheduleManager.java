@@ -162,7 +162,7 @@ public class ScheduleManager {
     private void LoadMilestones( Schedule s) {
         try {
             Cursor c;
-            c = db_.rawQuery("SELECT * FROM m_" + s.id, null);
+            c = db_.rawQuery("SELECT * FROM m_" + s.id + " order by _id", null);
             Log.e("LoadMilestones", "total:" + c.getCount());
             if (null == s.milestones) s.milestones = new ArrayList<Schedule>();
             while (c.moveToNext()) {
@@ -207,9 +207,9 @@ public class ScheduleManager {
             s.milestones.add(targetpos, m);
         }
         try {
-            int tempid = s.milestones.size() + 1;
-            int dbsource = sourcepos + 1;
-            int dbtarget = targetpos + 1;
+            int tempid = s.milestones.size();
+            int dbsource = sourcepos;
+            int dbtarget = targetpos;
             db_.beginTransaction();
             if (sourcepos > targetpos) {
                 String sql = "update m_" + s.id + " set _id=" + tempid + " where _id=" + dbsource + ";";

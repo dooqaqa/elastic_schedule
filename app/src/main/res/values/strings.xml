@@ -9,4 +9,7 @@
     <string name="delete_schedule_prompt">要确认删除,请输入yes</string>
     <string name="delete_schedule_answer">yes</string>
     <string name="delete_schedule_badinput">输入错误</string>
+    <string name="messagebox_ok">确定</string>
+    <string name="messagebox_cancle">取消</string>
+    <string name="add_milestone">添加里程碑</string>
 </resources>

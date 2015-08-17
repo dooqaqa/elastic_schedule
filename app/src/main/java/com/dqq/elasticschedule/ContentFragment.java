@@ -78,13 +78,13 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
 
     private void selectItem(int position) {
         if (mTargetsListView != null) {
-            //mTargetsListView.setItemChecked(position, true);
+            mTargetsListView.setItemChecked(position, false);
             if (position + 1 == mTargetsListView.getCount()) {
                 final EditText inputServer = new EditText(this.getActivity());
                 AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-                builder.setTitle("添加里程碑")./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
-                        .setNegativeButton("放弃", null);
-                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                builder.setTitle(getActivity().getString(R.string.add_milestone))./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
+                        .setNegativeButton(getActivity().getString(R.string.messagebox_cancle), null);
+                builder.setPositiveButton(getActivity().getString(R.string.messagebox_ok), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         String target = inputServer.getText().toString();
                         if (!target.isEmpty()) {
@@ -141,8 +141,8 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
             final EditText inputServer = new EditText(this.getActivity());
             AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
             builder.setTitle(getActivity().getString(R.string.delete_schedule_prompt))./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
-                    .setNegativeButton("放弃", null);
-            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    .setNegativeButton(R.string.messagebox_cancle, null);
+            builder.setPositiveButton(R.string.messagebox_ok, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     String target = inputServer.getText().toString();
                     if (0 == target.compareTo(getActivity().getString(R.string.delete_schedule_answer))) {
@@ -198,7 +198,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
             }
         }
         if (null != s.name) item_list.add(s.name);
-        item_list.add("插入");
+        item_list.add(getActivity().getString(R.string.add_milestone));
         mTargetsListView.setAdapter(new ArrayAdapter<String>(
                 getActionBar().getThemedContext(),
                 android.R.layout.simple_list_item_activated_1,
@@ -210,6 +210,6 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         ScheduleManager.GetInstance().MoveMilesone(sourcepos, targetpos);
     }
     public boolean IsPositionDragable(int position) {
-        return position != mTargetsListView.getCount() - 1;
+        return position >= 0 && position < mTargetsListView.getCount() - 2;
     }
 }

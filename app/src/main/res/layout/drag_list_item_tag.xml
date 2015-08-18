@@ -2,13 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:minHeight="?android:attr/listPreferredItemHeight"
     android:background="#555555"
     android:padding="5dip"
     android:paddingLeft="10dip">
     <TextView
        android:id="@+id/drag_list_item_text"
        android:layout_width="wrap_content"
-       android:layout_height="20dip"
+       android:layout_height="55dip"
        android:textColor="#ffffff"
        android:gravity="center_vertical"/>
 </LinearLayout>

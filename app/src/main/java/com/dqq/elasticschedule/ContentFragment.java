@@ -31,6 +31,7 @@ import android.widget.TimePicker;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import com.dqq.elasticschedule.DragListView;
 
@@ -66,11 +67,11 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
                 selectItem(position);
             }
         });
-        mTargetsListView.setAdapter(new ArrayAdapter<String>(
+        mTargetsListView.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[] {}
+                R.layout.drag_list_item,
+                R.id.drag_list_item_text,
+                new ArrayList<String>()
         ));
         mTargetsListView.AddListener(this);
         return mTargetsListView;
@@ -182,11 +183,11 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
     public void  NotifyScheduleListChanged(){}
     @Override
     public void NotifyScheduleDeleted(long index){
-        mTargetsListView.setAdapter(new ArrayAdapter<String>(
+        mTargetsListView.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[] {}
+                R.layout.drag_list_item,
+                R.id.drag_list_item_text,
+                new ArrayList<String>()
         ));
     }
     private void RefreshList(){
@@ -199,10 +200,10 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         }
         if (null != s.name) item_list.add(s.name);
         item_list.add(getActivity().getString(R.string.add_milestone));
-        mTargetsListView.setAdapter(new ArrayAdapter<String>(
+        mTargetsListView.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
+                R.layout.drag_list_item,
+                R.id.drag_list_item_text,
                 item_list
         ));
     }

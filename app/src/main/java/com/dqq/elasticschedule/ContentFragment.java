@@ -69,7 +69,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         });
         mTargetsListView.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
-                R.layout.drag_list_item,
+                R.layout.drag_list_item_tag,
                 R.id.drag_list_item_text,
                 new ArrayList<String>()
         ));
@@ -185,7 +185,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
     public void NotifyScheduleDeleted(long index){
         mTargetsListView.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
-                R.layout.drag_list_item,
+                R.layout.drag_list_item_tag,
                 R.id.drag_list_item_text,
                 new ArrayList<String>()
         ));
@@ -202,7 +202,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         item_list.add(getActivity().getString(R.string.add_milestone));
         mTargetsListView.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
-                R.layout.drag_list_item,
+                R.layout.drag_list_item_tag,
                 R.id.drag_list_item_text,
                 item_list
         ));

@@ -48,12 +48,11 @@ public class DragListView extends ListView {
     }
     private boolean IsPositionDragable(int position) {
         boolean ret = true;
-        for (DragListViewListener ls : listeners) {
+        for (DragListViewListener ls : listeners)
             if (!ls.IsPositionDragable(position)) {
                 ret = false;
                 break;
             }
-        }
         return ret;
     }
     
@@ -78,8 +77,8 @@ public class DragListView extends ListView {
             dragOffset = (int) (ev.getRawY() - y);
 
             if(itemView != null && x > itemView.getLeft() - 20){
-                upScrollBounce = Math.min(y-scaledTouchSlop, getHeight()/3);
-                downScrollBounce = Math.max(y+scaledTouchSlop, getHeight()*2/3);
+                upScrollBounce = Math.min(y-scaledTouchSlop, getHeight() / 3);
+                downScrollBounce = Math.max(y+scaledTouchSlop, getHeight() * 2 / 3);
                 
                 itemView.setDrawingCacheEnabled(true);
                 Bitmap bm = Bitmap.createBitmap(itemView.getDrawingCache());

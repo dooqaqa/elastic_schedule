@@ -59,6 +59,12 @@ public class DragListView extends ListView {
     public DragListView(Context context, AttributeSet attrs) {
         super(context, attrs);
         scaledTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        setOnLongClickListener(new OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return false;
+            }
+        });
     }
 
     @Override
@@ -77,9 +83,10 @@ public class DragListView extends ListView {
             dragOffset = (int) (ev.getRawY() - y);
 
             if(itemView != null && x > itemView.getLeft() - 20){
-                upScrollBounce = Math.min(y-scaledTouchSlop, getHeight() / 3);
-                downScrollBounce = Math.max(y+scaledTouchSlop, getHeight() * 2 / 3);
-                
+                upScrollBounce = Math.min(y - scaledTouchSlop, getHeight() / 3);
+                downScrollBounce = Math.max(y + scaledTouchSlop, getHeight() * 2 / 3);
+
+                itemView.setBackgroundColor(CustomAdapter.ActiveColor());
                 itemView.setDrawingCacheEnabled(true);
                 Bitmap bm = Bitmap.createBitmap(itemView.getDrawingCache());
                 itemView.setDrawingCacheEnabled(false);
@@ -143,12 +150,13 @@ public class DragListView extends ListView {
 
     public void onDrag(int y) {
         if(dragImageView!=null){
-            windowParams.alpha = 0.8f;
+            windowParams.alpha = 0.6f;
             windowParams.y = y - dragPoint + dragOffset;
             windowManager.updateViewLayout(dragImageView, windowParams);
         }
         int tempPosition = pointToPosition(0, y);
-        if(tempPosition != INVALID_POSITION) {
+        int oldpos = dragPosition;
+        if(tempPosition != INVALID_POSITION && IsPositionDragable(tempPosition)) {
             dragPosition = tempPosition;
         }
 
@@ -162,27 +170,37 @@ public class DragListView extends ListView {
         if(scrollHeight != 0){
             setSelectionFromTop(dragPosition, getChildAt(dragPosition-getFirstVisiblePosition()).getTop()+scrollHeight);
         }
+        if(dragPosition != oldpos && dragPosition >= 0 && dragPosition < getAdapter().getCount() && IsPositionDragable(dragPosition)) {
+            ArrayAdapter adapter = (ArrayAdapter)getAdapter();
+            String dragItem = (String)adapter.getItem(oldpos);
+            adapter.remove(dragItem);
+            adapter.insert(dragItem, dragPosition);
+        }
     }
 
     public void onDrop(int y){
+        int oldpos = dragPosition;
         int tempPosition = pointToPosition(0, y);
-        if(tempPosition != INVALID_POSITION) {
+        if (tempPosition == INVALID_POSITION && y < getChildAt(1).getTop()) {
+            tempPosition = 0;
+        }
+        if(tempPosition != INVALID_POSITION && IsPositionDragable(tempPosition)) {
             dragPosition = tempPosition;
         }
 
-        if(y < getChildAt(1).getTop()) {
-            dragPosition = 1;
-        } else if (y > getChildAt(getChildCount() - 1).getBottom()) {
-            dragPosition = getAdapter().getCount() - 1;
-        }
-
-        if(dragPosition > 0 && dragPosition < getAdapter().getCount() && IsPositionDragable(dragPosition)) {
+        if(dragPosition >= 0 && dragPosition < getAdapter().getCount() && IsPositionDragable(dragPosition)) {
             ArrayAdapter adapter = (ArrayAdapter)getAdapter();
-            String dragItem = (String)adapter.getItem(dragSrcPosition);
+            String dragItem = (String)adapter.getItem(oldpos);
             adapter.remove(dragItem);
             adapter.insert(dragItem, dragPosition);
             Toast.makeText(getContext(), dragItem, Toast.LENGTH_SHORT).show();
             NotifyItemPositionChanged(dragSrcPosition, dragPosition);
+        } else if (oldpos == dragPosition) {
+            ArrayAdapter adapter = (ArrayAdapter)getAdapter();
+            adapter.notifyDataSetInvalidated();
         }
+
+        View itemView = getChildAt(dragSrcPosition);
+        //itemView.setBackgroundColor(dragSrcPosition % 2 == 1? CustomAdapter.OddColor() : CustomAdapter.EvenColor());
     }
 }

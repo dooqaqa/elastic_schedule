@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,20 +20,22 @@ import java.util.ArrayList;
 
 public class DragListView extends ListView {
     
-    private ImageView dragImageView;
+    private ImageView drag_image_view;
     private int dragSrcPosition;
-    private int dragPosition;
+    private int drag_position;
     
-    private int dragPoint;
-    private int dragOffset;
+    private int drag_point;
+    private int drag_offset;
     
-    private WindowManager windowManager;
-    private WindowManager.LayoutParams windowParams;
+    private WindowManager window_manager;
+    private WindowManager.LayoutParams window_params;
     
-    private int scaledTouchSlop;
-    private int upScrollBounce;
-    private int downScrollBounce;
+    private int scale_touch_slop;
+    private int up_scroll_bounce;
+    private int down_scroll_bounce;
     private ArrayList<DragListViewListener> listeners = new ArrayList<DragListViewListener>();
+
+    private GestureDetector gesture_detector;
 
     public interface DragListViewListener {
         void OnDragFinish(int sourcepos, int targetpos);
@@ -58,7 +61,7 @@ public class DragListView extends ListView {
     
     public DragListView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        scaledTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        scale_touch_slop = ViewConfiguration.get(context).getScaledTouchSlop();
         setOnLongClickListener(new OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -73,18 +76,18 @@ public class DragListView extends ListView {
             int x = (int)ev.getX();
             int y = (int)ev.getY();
             
-            dragSrcPosition = dragPosition = pointToPosition(x, y);
-            if(dragPosition==AdapterView.INVALID_POSITION || !IsPositionDragable(dragPosition)){
+            dragSrcPosition = drag_position = pointToPosition(x, y);
+            if(drag_position ==AdapterView.INVALID_POSITION || !IsPositionDragable(drag_position)){
                 return super.onInterceptTouchEvent(ev);
             }
 
-            View itemView = (View) getChildAt(dragPosition-getFirstVisiblePosition());
-            dragPoint = y - itemView.getTop();
-            dragOffset = (int) (ev.getRawY() - y);
+            View itemView = (View) getChildAt(drag_position -getFirstVisiblePosition());
+            drag_point = y - itemView.getTop();
+            drag_offset = (int) (ev.getRawY() - y);
 
             if(itemView != null && x > itemView.getLeft() - 20){
-                upScrollBounce = Math.min(y - scaledTouchSlop, getHeight() / 3);
-                downScrollBounce = Math.max(y + scaledTouchSlop, getHeight() * 2 / 3);
+                up_scroll_bounce = Math.min(y - scale_touch_slop, getHeight() / 3);
+                down_scroll_bounce = Math.max(y + scale_touch_slop, getHeight() * 2 / 3);
 
                 itemView.setBackgroundColor(CustomAdapter.ActiveColor());
                 itemView.setDrawingCacheEnabled(true);
@@ -99,7 +102,7 @@ public class DragListView extends ListView {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if(dragImageView!=null&&dragPosition!=INVALID_POSITION){
+        if(drag_image_view !=null&& drag_position !=INVALID_POSITION){
             int action = ev.getAction();
             switch(action){
                 case MotionEvent.ACTION_UP:
@@ -121,81 +124,81 @@ public class DragListView extends ListView {
     public void startDrag(Bitmap bm ,int y){
         stopDrag();
         
-        windowParams = new WindowManager.LayoutParams();
-        windowParams.gravity = Gravity.TOP;
-        windowParams.x = 0;
-        windowParams.y = y - dragPoint + dragOffset;
-        windowParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        window_params = new WindowManager.LayoutParams();
+        window_params.gravity = Gravity.TOP;
+        window_params.x = 0;
+        window_params.y = y - drag_point + drag_offset;
+        window_params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        window_params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        window_params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                             | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
                             | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                             | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
-        windowParams.format = PixelFormat.TRANSLUCENT;
-        windowParams.windowAnimations = 0;
+        window_params.format = PixelFormat.TRANSLUCENT;
+        window_params.windowAnimations = 0;
 
         ImageView imageView = new ImageView(getContext());
         imageView.setImageBitmap(bm);
-        windowManager = (WindowManager)getContext().getSystemService("window");
-        windowManager.addView(imageView, windowParams);
-        dragImageView = imageView;
+        window_manager = (WindowManager)getContext().getSystemService("window");
+        window_manager.addView(imageView, window_params);
+        drag_image_view = imageView;
     }
 
     public void stopDrag(){
-        if(dragImageView!=null){
-            windowManager.removeView(dragImageView);
-            dragImageView = null;
+        if(drag_image_view !=null){
+            window_manager.removeView(drag_image_view);
+            drag_image_view = null;
         }
     }
 
     public void onDrag(int y) {
-        if(dragImageView!=null){
-            windowParams.alpha = 0.6f;
-            windowParams.y = y - dragPoint + dragOffset;
-            windowManager.updateViewLayout(dragImageView, windowParams);
+        if(drag_image_view !=null){
+            window_params.alpha = 0.6f;
+            window_params.y = y - drag_point + drag_offset;
+            window_manager.updateViewLayout(drag_image_view, window_params);
         }
         int tempPosition = pointToPosition(0, y);
-        int oldpos = dragPosition;
+        int oldpos = drag_position;
         if(tempPosition != INVALID_POSITION && IsPositionDragable(tempPosition)) {
-            dragPosition = tempPosition;
+            drag_position = tempPosition;
         }
 
         int scrollHeight = 0;
-        if(y < upScrollBounce) {
+        if(y < up_scroll_bounce) {
             scrollHeight = 8;
-        } else if (y > downScrollBounce) {
+        } else if (y > down_scroll_bounce) {
             scrollHeight = -8;
         }
         
         if(scrollHeight != 0){
-            setSelectionFromTop(dragPosition, getChildAt(dragPosition-getFirstVisiblePosition()).getTop()+scrollHeight);
+            setSelectionFromTop(drag_position, getChildAt(drag_position -getFirstVisiblePosition()).getTop()+scrollHeight);
         }
-        if(dragPosition != oldpos && dragPosition >= 0 && dragPosition < getAdapter().getCount() && IsPositionDragable(dragPosition)) {
+        if(drag_position != oldpos && drag_position >= 0 && drag_position < getAdapter().getCount() && IsPositionDragable(drag_position)) {
             ArrayAdapter adapter = (ArrayAdapter)getAdapter();
             String dragItem = (String)adapter.getItem(oldpos);
             adapter.remove(dragItem);
-            adapter.insert(dragItem, dragPosition);
+            adapter.insert(dragItem, drag_position);
         }
     }
 
     public void onDrop(int y){
-        int oldpos = dragPosition;
+        int oldpos = drag_position;
         int tempPosition = pointToPosition(0, y);
         if (tempPosition == INVALID_POSITION && y < getChildAt(1).getTop()) {
             tempPosition = 0;
         }
         if(tempPosition != INVALID_POSITION && IsPositionDragable(tempPosition)) {
-            dragPosition = tempPosition;
+            drag_position = tempPosition;
         }
 
-        if(dragPosition >= 0 && dragPosition < getAdapter().getCount() && IsPositionDragable(dragPosition)) {
+        if(drag_position >= 0 && drag_position < getAdapter().getCount() && IsPositionDragable(drag_position)) {
             ArrayAdapter adapter = (ArrayAdapter)getAdapter();
             String dragItem = (String)adapter.getItem(oldpos);
             adapter.remove(dragItem);
-            adapter.insert(dragItem, dragPosition);
+            adapter.insert(dragItem, drag_position);
             Toast.makeText(getContext(), dragItem, Toast.LENGTH_SHORT).show();
-            NotifyItemPositionChanged(dragSrcPosition, dragPosition);
-        } else if (oldpos == dragPosition) {
+            NotifyItemPositionChanged(dragSrcPosition, drag_position);
+        } else if (oldpos == drag_position) {
             ArrayAdapter adapter = (ArrayAdapter)getAdapter();
             adapter.notifyDataSetInvalidated();
         }

@@ -3,13 +3,9 @@ package com.dqq.elasticschedule;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -20,26 +16,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
-import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.TimePicker;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-
-import com.dqq.elasticschedule.DragListView;
 
 /**
  * Created by dooqaqa on 2015/7/9.
  */
 public class ContentFragment extends Fragment implements ScheduleObserver, DragListView.DragListViewListener {
-    private DragListView mTargetsListView = null;
+    private DragListView target_listview = null;
     public ContentFragment() {
     }
     @Override
@@ -59,28 +48,28 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mTargetsListView = (DragListView) inflater.inflate(
+        target_listview = (DragListView) inflater.inflate(
                 R.layout.fragment_content_main, container, false);
-        mTargetsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        target_listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 selectItem(position);
             }
         });
-        mTargetsListView.setAdapter(new CustomAdapter(
+        target_listview.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
                 R.layout.drag_list_item_tag,
                 R.id.drag_list_item_text,
                 new ArrayList<String>()
         ));
-        mTargetsListView.AddListener(this);
-        return mTargetsListView;
+        target_listview.AddListener(this);
+        return target_listview;
     }
 
     private void selectItem(int position) {
-        if (mTargetsListView != null) {
-            mTargetsListView.setItemChecked(position, false);
-            if (position + 1 == mTargetsListView.getCount()) {
+        if (target_listview != null) {
+            target_listview.setItemChecked(position, false);
+            if (position + 1 == target_listview.getCount()) {
                 final EditText inputServer = new EditText(this.getActivity());
                 AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
                 builder.setTitle(getActivity().getString(R.string.add_milestone))./*setIcon(android.R.drawable.ic_dialog_info).*/setView(inputServer)
@@ -183,7 +172,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
     public void  NotifyScheduleListChanged(){}
     @Override
     public void NotifyScheduleDeleted(long index){
-        mTargetsListView.setAdapter(new CustomAdapter(
+        target_listview.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
                 R.layout.drag_list_item_tag,
                 R.id.drag_list_item_text,
@@ -200,7 +189,7 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         }
         if (null != s.name) item_list.add(s.name);
         item_list.add(getActivity().getString(R.string.add_milestone));
-        mTargetsListView.setAdapter(new CustomAdapter(
+        target_listview.setAdapter(new CustomAdapter(
                 getActionBar().getThemedContext(),
                 R.layout.drag_list_item_tag,
                 R.id.drag_list_item_text,
@@ -211,6 +200,6 @@ public class ContentFragment extends Fragment implements ScheduleObserver, DragL
         ScheduleManager.GetInstance().MoveMilesone(sourcepos, targetpos);
     }
     public boolean IsPositionDragable(int position) {
-        return position >= 0 && position < mTargetsListView.getCount() - 2;
+        return position >= 0 && position < target_listview.getCount() - 2;
     }
 }
